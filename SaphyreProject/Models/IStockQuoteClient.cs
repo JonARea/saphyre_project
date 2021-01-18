@@ -6,6 +6,6 @@ namespace SaphyreProject.Models
 {
     public interface IStockQuoteClient
     {
-        public Task<object> GetQuotes(IList<string> symbols);
+        public Task<IList<Stock>> GetQuotes(IList<string> symbols);
     }
 }

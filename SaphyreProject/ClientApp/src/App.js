@@ -1,13 +1,10 @@
-import React, { Component } from "react";
+import React from "react";
 import { Route } from "react-router";
 import { StockTicker } from "./components/StockTicker";
-
 import "./custom.css";
 
-export default class App extends Component {
-  static displayName = App.name;
-
-  render() {
-    return <Route exact path="/" component={StockTicker} />;
-  }
-}
+export const App = (props) => (
+  <Route exact path="/">
+    <StockTicker signalR={props.signalR} />
+  </Route>
+);

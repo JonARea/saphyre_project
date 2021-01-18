@@ -1,1 +1,30 @@
+.stockTicker {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
 
+.dashboard {
+  min-width: 20vw;
+  background: black;
+  color: white;
+}
+
+.dashboard > .form {
+  width: 70%;
+}
+
+.pusher {
+  min-height: 100vh;
+  padding: 3em;
+}
+
+.quoteHeader {
+  min-height: 20vh;
+}
+
+.table {
+  min-width: 300px;
+}

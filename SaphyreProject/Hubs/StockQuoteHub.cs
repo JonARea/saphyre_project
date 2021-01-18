@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using SaphyreProject.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SaphyreProject.Hubs
@@ -14,21 +15,22 @@ namespace SaphyreProject.Hubs
             _stockTicker = stockTicker;
         }
 
-        public async Task AddStock(string user, string symbol)
+        public string AddStock(string user, string symbol)
         {
             var stock = _stockTicker.TryAddStock(user, symbol);
             var message = stock == null ? $"Could not add {symbol}" : $"{symbol} added";
 
-            await Clients.Caller.SendAsync("AddStockResult", user, message);
+            return message;
         }
 
-        public async Task GetMyStocks(string user)
+        public IList<Stock> GetMyStocks(string user)
         {
             if (user != null)
             {
                 var usersStocks = _stockTicker.GetStocksByUser(user);
-                await Clients.Caller.SendAsync("ReceiveStocks", usersStocks);
+                return usersStocks;
             }
+            return null;
         }
 
     }

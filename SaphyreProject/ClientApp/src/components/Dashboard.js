@@ -15,6 +15,7 @@ export const Dashboard = (props) => {
       props.setUser(userName);
       setUserName("");
     } else if (type === "stock") {
+      console.log(props, stockSymbol);
       props.addStock(stockSymbol);
       setStockSymbol("");
     }
@@ -22,42 +23,47 @@ export const Dashboard = (props) => {
     event.preventDefault();
   };
 
+  let visible = props.visible ? "visible" : "";
+
   return (
-    <div className="container">
-      <div className="row">&nbsp;</div>
-      <div className="row">
-        <div className="col-2">Enter your username</div>
-        <div className="col-4">
+    <div className={"dashboard ui vertical sidebar inverted " + visible}>
+      <div>
+        <h3>Dashboard</h3>
+      </div>
+      <div className="ui form inverted">
+        <div className="field">
+          <label>Username</label>
           <input
             type="text"
+            placeholder="Username"
             value={userName}
-            id="userInput"
+            className="userInput"
             onChange={(event) => handleChange(event, "userName")}
           />
+
+          <button
+            className="ui button userButton"
+            onClick={(event) => handleSubmit(event, "userName")}
+          >
+            Submit
+          </button>
         </div>
-        <input
-          type="button"
-          value="Submit"
-          onClick={(event) => handleSubmit(event, "userName")}
-        />
-      </div>
-      <div className="row">
-        <div className="col-2">Stock Symbol to Add</div>
-        <div className="col-4">
+        <div className="field">
+          <label>Add Stock</label>
           <input
             type="text"
+            placeholder="e.g. MSFT"
             value={stockSymbol}
-            id="stockInput"
+            className="stockInput"
             onChange={(event) => handleChange(event, "stock")}
           />
-        </div>
-        <div className="col-6">
-          <input
-            type="button"
-            id="sendButton"
-            value="Add Stock"
+          <button
+            disabled={props.disableAddStock}
+            className="ui button stockButton"
             onClick={(event) => handleSubmit(event, "stock")}
-          />
+          >
+            Add
+          </button>
         </div>
       </div>
     </div>

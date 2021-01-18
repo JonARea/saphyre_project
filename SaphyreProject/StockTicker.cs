@@ -2,52 +2,58 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
-using Microsoft.AspNetCore.SignalR;
-using SaphyreProject.Hubs;
 using SaphyreProject.Models;
 
 namespace SaphyreProject
 {
     public class StockTicker : IStockTicker
     {
-        private readonly IHubContext<StockQuoteHub> _hubContext;
 
         private readonly IStockQuoteClient _quoteClient;
 
-        private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, Stock>> _stocksByUser = new ConcurrentDictionary<string, ConcurrentDictionary<string, Stock>>();
+        private readonly ConcurrentDictionary<string, HashSet<string>> _stocksByUser = new ConcurrentDictionary<string, HashSet<string>>();
 
-        private readonly object _updateStockPricesLock = new object();
+        private readonly ConcurrentDictionary<string, Stock> _allStocks = new ConcurrentDictionary<string, Stock>();
 
-        private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(10);
+        private readonly SemaphoreSlim _updateStockPricesLock = new SemaphoreSlim(1, 1);
+
+        private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(20);
 
         private readonly Timer _timer;
         private volatile bool _updatingStockPrices = false;
 
         public StockTicker()
         {
-            _quoteClient = new StockQuoteClient();
+            _quoteClient = new StockQuoteClient(new HttpClient());
             _stocksByUser.Clear();
 
             _timer = new Timer(UpdateStockPrices, null, _updateInterval, _updateInterval);
 
         }
 
-        private IHubClients Clients
-        {
-            get;
-            set;
-        }
-
         public Stock TryAddStock(string user, string symbol)
         {
-            var stocksBySymbol = _stocksByUser.GetOrAdd(user, (user) => new ConcurrentDictionary<string, Stock>());
-            var stock = new Stock
+
+            symbol = symbol.ToUpper();
+            var stockSet = _stocksByUser.GetOrAdd(user, (user) => new HashSet<string>());
+
+            stockSet.Add(symbol);
+
+            if (_allStocks.TryGetValue(symbol, out var stock))
             {
-                Symbol = symbol,
-                Price = 0
-            };
-            return stocksBySymbol.GetOrAdd(symbol, (symbol) => stock);
+                return stock;
+            }
+            else
+            {
+                stock = new Stock();
+                stock.Symbol = symbol;
+                stock.Price = 0;
+                _allStocks.TryAdd(symbol, stock);
+                return stock;
+            }
+
         }
 
         public IList<Stock> GetStocksByUser(string user)
@@ -55,28 +61,48 @@ namespace SaphyreProject
 
             if (_stocksByUser.TryGetValue(user, out var usersStocks))
             {
-                return usersStocks.Values.ToList();
+                return usersStocks.Select(symbol =>
+                {
+                    if (_allStocks.TryGetValue(symbol, out var stock))
+                    {
+                        return stock;
+                    }
+                    else
+                    {
+                        return new Stock();
+                    }
+                }).ToList();
             }
             return null;
         }
 
-        private void UpdateStockPrices(object state)
+        private async void UpdateStockPrices(object state)
         {
-            lock (_updateStockPricesLock)
+
+            await _updateStockPricesLock.WaitAsync();
+
+            var stocksToUpdate = _allStocks.Keys.ToList();
+
+            try
             {
-                if (!_updatingStockPrices)
+                if (!_updatingStockPrices && stocksToUpdate.Count > 0)
                 {
                     _updatingStockPrices = true;
 
-                    //if (TryUpdateStockPrices(_stocks.Values))
-                    //{
-                    //    BroadcastStockPrice(stock);
-                    //}
+                    var stocks = await _quoteClient.GetQuotes(stocksToUpdate);
 
-                    //_updatingStockPrices = false;
+
+                    foreach (var stock in stocks)
+                    {
+                        _allStocks.AddOrUpdate(stock.Symbol, stock, (key, oldValue) => stock);
+                    }
                 }
+                _updatingStockPrices = false;
+            }
+            finally
+            {
+                _updateStockPricesLock.Release();
             }
         }
-
     }
 }
