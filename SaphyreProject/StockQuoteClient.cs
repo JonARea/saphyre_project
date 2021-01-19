@@ -64,11 +64,10 @@ namespace SaphyreProject
             };
 
             HttpResponseMessage response = await _client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
 
             try
             {
-
+                response.EnsureSuccessStatusCode();
                 var result = await response.Content.ReadAsStringAsync();
                 var deserialized = JsonSerializer.Deserialize<ApiResponse>(result);
 
@@ -89,6 +88,10 @@ namespace SaphyreProject
             catch (JsonException)
             {
                 Console.WriteLine("Invalid JSON");
+            }
+            catch (HttpRequestException)
+            {
+                Console.WriteLine($"Request failed with a status code of {response.StatusCode}");
             }
             return null;
         }
