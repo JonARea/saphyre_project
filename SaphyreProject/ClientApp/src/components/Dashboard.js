@@ -1,4 +1,5 @@
 ﻿import React, { useState } from "react";
+import { Button, Divider, Form, Header } from "semantic-ui-react";
 
 export const Dashboard = (props) => {
   const [userName, setUserName] = useState("");
@@ -15,7 +16,6 @@ export const Dashboard = (props) => {
       props.setUser(userName);
       setUserName("");
     } else if (type === "stock") {
-      console.log(props, stockSymbol);
       props.addStock(stockSymbol);
       setStockSymbol("");
     }
@@ -23,15 +23,16 @@ export const Dashboard = (props) => {
     event.preventDefault();
   };
 
-  let visible = props.visible ? "visible" : "";
-
   return (
-    <div className={"dashboard ui vertical sidebar inverted " + visible}>
+    <div className="dashboard">
       <div>
-        <h3>Dashboard</h3>
+        <Header as="h2" inverted>
+          StockTicker
+        </Header>
+        <Divider inverted></Divider>
       </div>
-      <div className="ui form inverted">
-        <div className="field">
+      <Form inverted={true}>
+        <Form.Field>
           <label>Username</label>
           <input
             type="text"
@@ -40,15 +41,14 @@ export const Dashboard = (props) => {
             className="userInput"
             onChange={(event) => handleChange(event, "userName")}
           />
-
-          <button
+          <Button
             className="ui button userButton"
             onClick={(event) => handleSubmit(event, "userName")}
           >
             Submit
-          </button>
-        </div>
-        <div className="field">
+          </Button>
+        </Form.Field>
+        <Form.Field>
           <label>Add Stock</label>
           <input
             type="text"
@@ -57,15 +57,15 @@ export const Dashboard = (props) => {
             className="stockInput"
             onChange={(event) => handleChange(event, "stock")}
           />
-          <button
+          <Button
             disabled={props.disableAddStock}
             className="ui button stockButton"
             onClick={(event) => handleSubmit(event, "stock")}
           >
             Add
-          </button>
-        </div>
-      </div>
+          </Button>
+        </Form.Field>
+      </Form>
     </div>
   );
 };

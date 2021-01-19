@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
@@ -9,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using SaphyreProject.Hubs;
 using SaphyreProject.Models;
 using System.Linq;
+using System.Net.Http;
 
 namespace SaphyreProject
 {
@@ -24,7 +24,8 @@ namespace SaphyreProject
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<StockTicker>();
+            var stockQuoteClient = new StockQuoteClient(new HttpClient());
+            services.AddSingleton<IStockTicker>(sp => new StockTicker(stockQuoteClient, 20));
             services.AddSignalR();
             services.AddResponseCompression(opts =>
             {

@@ -1,95 +1,64 @@
-import React, { Component } from "react";
+import React, { useEffect, useState } from "react";
+import { Sidebar } from "semantic-ui-react";
+import { AddStockModal } from "./AddStockResult";
 import { Dashboard } from "./Dashboard";
 import { QuoteTable } from "./QuoteTable";
-export class StockTicker extends Component {
-  static displayName = StockTicker.name;
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      user: "",
-      stocks: [],
-      signalR: null,
-      updateInterval: null,
-      showDashboard: true,
-    };
+export const StockTicker = (props) => {
+  // State
+  const { signalR } = props;
+  const [user, setUser] = useState("");
+  const [stocks, setStocks] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState("");
 
-    this.setUser = this.setUser.bind(this);
-    this.addStock = this.addStock.bind(this);
-    this.updateStocks = this.updateStocks.bind(this);
-  }
-
-  setUser(user) {
-    this.setState({
-      user,
+  const addStock = (symbol) => {
+    signalR.invoke("AddStock", user, symbol).then((message) => {
+      setModalContent(message);
+      setModalOpen(true);
     });
-  }
+  };
 
-  updateStocks(stocks) {
-    if (stocks) {
-      this.setState({
-        stocks,
-      });
-    }
-  }
-
-  addStock(symbol) {
-    this.state.signalR
-      .invoke("AddStock", this.state.user, symbol)
-      .then((res) => {
-        console.log(res);
-      });
-  }
-
-  initializeSignalR() {
-    const signalR = this.props.signalR;
-    signalR.onReceiveMessage("ReceiveStocks", this.updateStocks);
-    signalR.onReceiveMessage("AddStockResult", (result) => console.log(result));
-    const updateInterval = setInterval(() => {
+  useEffect(() => {
+    console.log(signalR);
+    const fetchStocks = () => {
       signalR
-        .invoke("GetMyStocks", this.state.user)
-        .then(this.updateStocks)
+        .invoke("GetMyStocks", user)
+        .then((stocks) => {
+          if (stocks?.length) {
+            setStocks(stocks);
+          }
+        })
         .catch((err) => console.error(err));
-    }, 5000);
+    };
+    const updateInterval = setInterval(fetchStocks, 3000);
 
-    this.setState({
-      signalR,
-      updateInterval,
-    });
-  }
+    return () => clearInterval(updateInterval);
+  }, [signalR, user]);
 
-  componentDidMount() {
-    this.initializeSignalR();
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.state.updateInterval);
-  }
-
-  toggleDashboard(show) {
-    this.setState({
-      showDashboard: show,
-    });
-  }
-
-  render() {
-    return (
-      <div className="stockTicker">
+  return (
+    <Sidebar.Pushable className="stockTicker">
+      <Sidebar inverted="true" vertical="true" visible>
         <Dashboard
-          setUser={this.setUser}
-          addStock={this.addStock}
-          visible={this.state.showDashboard}
-          disableAddStock={!this.state.user}
+          setUser={(user) => {
+            setUser(user);
+            setStocks(null);
+          }}
+          addStock={addStock}
+          disableAddStock={!user}
         />
-        <div className="pusher">
-          <h2 className="quoteHeader">
-            {this.state.user
-              ? this.state.user + "'s stocks"
-              : "Enter your username"}
-          </h2>
-          <QuoteTable stocks={this.state.stocks} />
-        </div>
-      </div>
-    );
-  }
-}
+      </Sidebar>
+      <Sidebar.Pusher>
+        <h2 className="quoteHeader">
+          {user ? user + "'s stocks" : "Enter your username and stock symbols"}
+        </h2>
+        <QuoteTable stocks={stocks} />
+      </Sidebar.Pusher>
+      <AddStockModal
+        open={modalOpen}
+        content={modalContent}
+        closeModal={() => setModalOpen(false)}
+      ></AddStockModal>
+    </Sidebar.Pushable>
+  );
+};

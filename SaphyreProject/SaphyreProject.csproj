@@ -24,10 +24,12 @@
   <ItemGroup>
     <Folder Include="Hubs\" />
     <Folder Include="Models\" />
-    <Folder Include="Controllers\" />
     <Folder Include="ClientApp\wwwroot\" />
     <Folder Include="ClientApp\wwwroot\lib\" />
     <Folder Include="ClientApp\wwwroot\lib\signalr\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="ClientApp\public\semantic.min.css" />
   </ItemGroup>
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
     <!-- Ensure Node.js is installed -->

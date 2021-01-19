@@ -1,27 +1,28 @@
 ﻿import React from "react";
+import { Table } from "semantic-ui-react";
 
 export const QuoteTable = (props) => {
   const { stocks } = props;
 
-  return stocks.length ? (
-    <table className="ui celled table">
-      <thead>
-        <tr>
-          <th>Stock</th>
-          <th>Price</th>
-        </tr>
-      </thead>
-      <tbody>
+  return stocks?.length ? (
+    <Table className="table">
+      <Table.Header>
+        <Table.Row>
+          <Table.HeaderCell>Stock</Table.HeaderCell>
+          <Table.HeaderCell>Price</Table.HeaderCell>
+        </Table.Row>
+      </Table.Header>
+      <Table.Body>
         {stocks &&
           stocks.map((stock) => (
-            <tr key={stock.toString()}>
-              <td>{stock.symbol}</td>
-              <td>{stock.price || "Price Pending"}</td>
-            </tr>
+            <Table.Row key={stock.toString()}>
+              <Table.Cell>{stock.symbol}</Table.Cell>
+              <Table.Cell>{stock.price || "Price Pending"}</Table.Cell>
+            </Table.Row>
           ))}
-      </tbody>
-    </table>
+      </Table.Body>
+    </Table>
   ) : (
-    <h4 className="noStocksMessage">Enter stock symbols in the dashboard</h4>
+    <h4 className="noStocksMessage">No stocks added</h4>
   );
 };

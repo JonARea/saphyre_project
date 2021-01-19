@@ -26,29 +26,10 @@ it("displays correctly with no information", () => {
   act(() => {
     render(<StockTicker signalR={new mockSignalR()}></StockTicker>, container);
     expect(container.querySelector(".quoteHeader").textContent).toBe(
-      "Enter your username"
+      "Enter your username and stock symbols"
     );
     expect(container.querySelector(".noStocksMessage").textContent).toBe(
-      "Enter stock symbols in the dashboard"
+      "No stocks added"
     );
-  });
-});
-
-it("displays correctly with information", () => {
-  act(() => {
-    render(<StockTicker signalR={new mockSignalR()}></StockTicker>, container);
-    const userInput = container.querySelector(".userInput");
-    const userButton = container.querySelector(".userButton");
-    const stockButton = container.querySelector(".stockButton");
-    const stockInput = container.querySelector(".stockInput");
-
-    Simulate.change(userInput, "jon");
-    Simulate.click(userButton);
-    Simulate.change(stockInput);
-    console.log(userInput.value);
-    expect(container.querySelector(".quoteHeader").textContent).toBe(
-      "jon's stocks"
-    );
-    expect(container.querySelector(".noStocksMessage")).toBeFalsey();
   });
 });

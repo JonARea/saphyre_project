@@ -1,37 +1,49 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using SaphyreProject.Models;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace SaphyreProject.Hubs
 {
     public class StockQuoteHub : Hub
     {
 
-        private readonly StockTicker _stockTicker;
+        private readonly IStockTicker _stockTicker;
 
-        public StockQuoteHub(StockTicker stockTicker)
+        public StockQuoteHub(IStockTicker stockTicker)
         {
             _stockTicker = stockTicker;
         }
 
         public string AddStock(string user, string symbol)
         {
-            var stock = _stockTicker.TryAddStock(user, symbol);
-            var message = stock == null ? $"Could not add {symbol}" : $"{symbol} added";
+            string message;
+            if (user == null || user == string.Empty)
+            {
+                message = "No user provided!";
+            }
+            else if (symbol == null || symbol == string.Empty)
+            {
+                message = "No stock symbol provided!";
+            }
+            else
+            {
+                symbol = symbol.ToUpper();
+                var stock = _stockTicker.TryAddStock(user, symbol);
+                message = stock == null ? $"Error: Could not add {symbol}" : $"{symbol} added to your stock list";
+            }
 
             return message;
         }
 
         public IList<Stock> GetMyStocks(string user)
         {
-            if (user != null)
+            if (user == null || user == string.Empty)
             {
-                var usersStocks = _stockTicker.GetStocksByUser(user);
-                return usersStocks;
-            }
-            return null;
-        }
+                return null;
 
+            }
+            var usersStocks = _stockTicker.GetStocksByUser(user);
+            return usersStocks;
+        }
     }
 }

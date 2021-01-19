@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using SaphyreProject.Models;
 
@@ -19,24 +18,23 @@ namespace SaphyreProject
 
         private readonly SemaphoreSlim _updateStockPricesLock = new SemaphoreSlim(1, 1);
 
-        private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(20);
+        private readonly TimeSpan _updateInterval;
 
         private readonly Timer _timer;
         private volatile bool _updatingStockPrices = false;
 
-        public StockTicker()
+        public StockTicker(IStockQuoteClient quoteClient, int updateFrequencySeconds)
         {
-            _quoteClient = new StockQuoteClient(new HttpClient());
+            _quoteClient = quoteClient;
             _stocksByUser.Clear();
 
+            _updateInterval = TimeSpan.FromSeconds(updateFrequencySeconds);
             _timer = new Timer(UpdateStockPrices, null, _updateInterval, _updateInterval);
 
         }
 
         public Stock TryAddStock(string user, string symbol)
         {
-
-            symbol = symbol.ToUpper();
             var stockSet = _stocksByUser.GetOrAdd(user, (user) => new HashSet<string>());
 
             stockSet.Add(symbol);

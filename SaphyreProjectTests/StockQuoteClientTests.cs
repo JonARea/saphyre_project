@@ -6,27 +6,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SaphyreProject;
 using Moq;
 using System.Collections.Generic;
-using System.Threading;
 using SaphyreProject.Models;
 
 namespace SaphyreProjectTests
 {
-    public class MockHttpMessageHandler : HttpMessageHandler
-    {
-        private HttpResponseMessage _responseMessage;
-        public MockHttpMessageHandler(HttpResponseMessage responseMessage)
-        {
-            _responseMessage = responseMessage;
-        }
-
-        protected override async Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request,
-            CancellationToken cancellationToken)
-        {
-            return await Task.FromResult(_responseMessage);
-        }
-    }
-
     [TestClass]
     public class StockQuoteClientTests
     {
@@ -81,4 +64,3 @@ namespace SaphyreProjectTests
         }
     }
 }
-ß

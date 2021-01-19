@@ -1,5 +1,4 @@
-﻿using System;
-namespace SaphyreProject.Models
+﻿namespace SaphyreProject.Models
 {
     public class Stock
     {
